@@ -1,7 +1,12 @@
-const Admin = require('../models/Admin');
+const Admin = require('../models/admin.model');
 
 async function isSystemAdmin(userId) {
   const admin = await Admin.findOne({ userId });
+  return !!admin;
+}
+
+async function isSuperAdmin(userId) {
+  const admin = await Admin.findOne({ userId, role: 'super_admin' });
   return !!admin;
 }
 
@@ -17,4 +22,4 @@ async function canUseBot(bot, chatId, userId) {
   return system || telegram;
 }
 
-module.exports = { canUseBot };
+module.exports = { canUseBot, isSuperAdmin };
