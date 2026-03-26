@@ -18,7 +18,7 @@
   "license": "ISC",
   "author": "Oluwayimika Oladipupo",
   "type": "commonjs",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
