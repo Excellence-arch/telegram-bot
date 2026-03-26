@@ -23,35 +23,35 @@ Return JSON:
   //   temperature: 0.7,
   // });
 
-  const response = await axios.post(
-    'https://api.groq.com/openai/v1/chat/completions',
-    {
-      model: 'openai/gpt-oss-120b',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: fileUrl } },
-          ],
-        },
-      ],
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const text = response.data.choices?.[0]?.message?.content;
   try {
+    const response = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model: 'openai/gpt-oss-120b',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: fileUrl } },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    const text = response.data.choices?.[0]?.message?.content;
     return JSON.parse(text);
-  } catch {
+  } catch (error) {
+    console.log('AI analysis failed, marking as INVALID', error.message);
     return { score: 0, verdict: 'INVALID' };
   }
-
 
   // const text = response.choices?.[0]?.message?.content;
   // console.log(text);
