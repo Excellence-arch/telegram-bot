@@ -91,7 +91,7 @@ bot.on('message', async (msg) => {
   if (hashExists) return;
 
   // AI
-  const ai = await analyzeImage(fileLink, contest.description);
+  // const ai = await analyzeImage(fileLink, contest.description);
 
   // if (ai.verdict !== 'VALID') return;
 
