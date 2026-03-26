@@ -1,4 +1,10 @@
 const axios = require('axios');
+// const Groq = require('groq-sdk');
+require('dotenv').config();
+
+// const groq = new Groq({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
 
 async function analyzeImage(fileUrl, task) {
   const prompt = `
@@ -9,17 +15,24 @@ Return JSON:
 { "score": number, "verdict": "VALID" | "INVALID" | "IRRELEVANT" }
 `;
 
-  // Replace with OpenAI SDK if needed
+  // const response = await groq.chat.completions.create({
+  //   model: 'openai/gpt-oss-120b',
+  //   messages: [{ role: 'user', content: prompt }],
+  //   stream: false,
+  //   max_tokens: 500,
+  //   temperature: 0.7,
+  // });
+
   const response = await axios.post(
     'https://api.groq.com/openai/v1/chat/completions',
     {
-      model: 'llama-3.3-70b-versatile',
-      input: [
+      model: 'openai/gpt-oss-120b',
+      messages: [
         {
           role: 'user',
           content: [
-            { type: 'input_text', text: prompt },
-            { type: 'input_image', image_url: fileUrl },
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: fileUrl } },
           ],
         },
       ],
@@ -32,10 +45,18 @@ Return JSON:
     },
   );
 
-  const text = response.data.choices[0].message.content;
-  return JSON.parse(text);
-}
+  const text = response.data.choices?.[0]?.message?.content;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { score: 0, verdict: 'INVALID' };
+  }
 
+
+  // const text = response.choices?.[0]?.message?.content;
+  // console.log(text);
+  // return JSON.parse(text);
+}
 
 // import Groq from 'groq-sdk';
 
@@ -57,9 +78,5 @@ Return JSON:
 //     model: 'openai/gpt-oss-20b',
 //   });
 // }
-
-
-
-
 
 module.exports = { analyzeImage };
