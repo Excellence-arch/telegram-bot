@@ -136,7 +136,7 @@ bot.onText(/\/leaderboard/, async (msg) => {
   let text = '🏆 Leaderboard:\n\n';
 
   scores.forEach((s, i) => {
-    text += `${i + 1}. ${s.username} - ${s.totalScore}\n`;
+    text += `${i + 1}. @${s.username} - ${s.totalScore}\n`;
   });
 
   bot.sendMessage(msg.chat.id, text);
