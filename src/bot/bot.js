@@ -5,6 +5,7 @@ const Score = require('../models/score.model');
 const { getImageHash } = require('../services/hashService');
 const { analyzeImage } = require('../services/aiService');
 const { canUseBot, isSuperAdmin } = require('../utils/checkAdmin');
+const Admin = require('../models/admin.model');
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
@@ -25,7 +26,6 @@ bot.onText(/\/startcontest (.+)/, async (msg, match) => {
 
   // bot.sendMessage(msg.chat.id, '✅ Contest started!');
 });
-
 
 bot.onText(/\/register/, async (msg) => {
   const allowed = await isSuperAdmin(msg.from.id);
@@ -55,8 +55,6 @@ bot.onText(/\/register/, async (msg) => {
     `✅ @${targetUser.username || 'user'} is now an admin`,
   );
 });
-
-
 
 /**
  * HANDLE SUBMISSIONS
@@ -114,7 +112,7 @@ bot.on('message', async (msg) => {
       // $inc: { totalScore: ai.score },
       $set: { username: msg.from.username },
     },
-    { upsert: true }
+    { upsert: true },
   );
 
   // bot.sendMessage(msg.chat.id, `✅ Score: ${ai.score}`);
@@ -145,6 +143,7 @@ bot.onText(/\/leaderboard/, async (msg) => {
 });
 
 bot.onText(/\/listadmins/, async (msg) => {
+  console.log(`Command recieved from ${msg.from.username} (${msg.from.id})`);
   const allowed = await isSuperAdmin(msg.from.id);
   if (!allowed) return;
 
@@ -180,7 +179,6 @@ bot.onText(/\/removeadmin/, async (msg) => {
     return bot.sendMessage(msg.chat.id, '❌ You cannot remove yourself.');
   }
 
-
   const deleted = await Admin.findOneAndDelete({
     userId: targetUser.id.toString(),
   });
@@ -194,6 +192,5 @@ bot.onText(/\/removeadmin/, async (msg) => {
     `✅ @${targetUser.username || 'user'} removed from admins`,
   );
 });
-
 
 module.exports = bot;
