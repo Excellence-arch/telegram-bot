@@ -91,9 +91,9 @@ bot.on('message', async (msg) => {
   if (hashExists) return;
 
   // AI
-  // const ai = await analyzeImage(fileLink, contest.description);
+  const ai = await analyzeImage(fileLink, contest.description);
 
-  // if (ai.verdict !== 'VALID') return;
+  if (ai.verdict !== 'VALID') return;
 
   await Submission.create({
     contestId: contest._id,
@@ -102,20 +102,20 @@ bot.on('message', async (msg) => {
     fileId: file.file_id,
     fileUniqueId: file.file_unique_id,
     imageHash: hash,
-    // relevanceScore: ai.score,
-    // aiVerdict: ai.verdict,
+    relevanceScore: ai.score,
+    aiVerdict: ai.verdict,
   });
 
   await Score.findOneAndUpdate(
     { contestId: contest._id, userId: msg.from.id },
     {
-      // $inc: { totalScore: ai.score },
+      $inc: { totalScore: ai.score },
       $set: { username: msg.from.username },
     },
     { upsert: true },
   );
 
-  // bot.sendMessage(msg.chat.id, `✅ Score: ${ai.score}`);
+  bot.sendMessage(msg.chat.id, `✅ Score: ${ai.score}`);
 });
 
 /**
