@@ -1,11 +1,14 @@
 require('dotenv').config();
 const connectDB = require('./config/db');
 const app = require('./app');
+const morgan = require('morgan');
 
 // start bot
 require('./bot/bot');
 
 connectDB();
+
+app.use(morgan('dev'));
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
