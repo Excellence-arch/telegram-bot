@@ -402,7 +402,7 @@ bot.onText(/\/listadmins/, async (msg) => {
 
   let text = '👑 **Admins:**\n\n';
   admins.forEach((admin, i) => {
-    text += `${i + 1}. @${admin.username || 'no_username'} (ID: ${admin.userId}) - ${admin.role}\n`;
+    text += `${i + 1}. @${admin.username || 'no_username'} (ID: ${admin.userId || 'no userId'}) - ${admin.role || 'admin'}\n`;
   });
 
   bot.sendMessage(msg.chat.id, text);
