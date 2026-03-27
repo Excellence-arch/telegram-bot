@@ -9,12 +9,37 @@ const Admin = require('../models/admin.model');
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
+bot.onText(/\/help/, async (msg) => {
+  const allowed = await canUseBot(bot, msg.chat.id, msg.from.id);
+  if (!allowed) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `Only a registered admin can use this command`,
+    );
+  }
+  let response = `
+  For this commands to work, the bot must be an admin with access to read and write messages.
+  These are the list of commands that you can use on this bot:
+  /startcontest description -  to start the contest with the full description of the contest. The description is what empowers the bot to know hoow to judge the screenshots and links
+  /leaderboard - To get the leaderboard by ranking
+  /register - To register a new admin
+  /listadmins - To list all the registered admins
+  /removeadmins - To remove an admin
+  `;
+  bot.sendMessage(msg.chat.id, response);
+});
+
 /**
  * START CONTEST
  */
 bot.onText(/\/startcontest (.+)/, async (msg, match) => {
   const allowed = await canUseBot(bot, msg.chat.id, msg.from.id);
-  if (!allowed) return;
+  if (!allowed) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `Only a registered admin can use this command`,
+    );
+  }
 
   const description = match[1];
 
@@ -24,12 +49,23 @@ bot.onText(/\/startcontest (.+)/, async (msg, match) => {
     chatId: msg.chat.id,
   });
 
-  // bot.sendMessage(msg.chat.id, '✅ Contest started!');
+  response = `
+  ✅ Contest started!
+  Below are the details of the contest:
+${description}
+  `;
+
+  bot.sendMessage(msg.chat.id, response);
 });
 
 bot.onText(/\/register/, async (msg) => {
   const allowed = await isSuperAdmin(msg.from.id);
-  if (!allowed) return;
+  if (!allowed) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `Only a super admin can use this command`,
+    );
+  }
 
   if (!msg.reply_to_message) {
     return bot.sendMessage(msg.chat.id, '❌ Reply to the user to register.');
@@ -67,7 +103,12 @@ bot.on('message', async (msg) => {
     isActive: true,
   });
 
-  if (!contest) return;
+  if (!contest) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `If you mean for the bot to be active, Please start a contest with the command /startcontest to continue`,
+    );
+  }
 
   const file = msg.photo ? msg.photo.pop() : msg.document;
 
@@ -127,7 +168,12 @@ bot.onText(/\/leaderboard/, async (msg) => {
     isActive: true,
   });
 
-  if (!contest) return;
+  if (!contest) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `A contest has not been started here. Please use the /startcontest to start a contest`,
+    );
+  }
 
   const scores = await Score.find({ contestId: contest._id })
     .sort({ totalScore: -1 })
@@ -145,7 +191,12 @@ bot.onText(/\/leaderboard/, async (msg) => {
 bot.onText(/\/listadmins/, async (msg) => {
   console.log(`Command recieved from ${msg.from.username} (${msg.from.id})`);
   const allowed = await isSuperAdmin(msg.from.id);
-  if (!allowed) return;
+  if (!allowed) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `Only a super admin can use this command`,
+    );
+  }
 
   const admins = await Admin.find();
 
@@ -164,7 +215,12 @@ bot.onText(/\/listadmins/, async (msg) => {
 
 bot.onText(/\/removeadmin/, async (msg) => {
   const allowed = await isSuperAdmin(msg.from.id);
-  if (!allowed) return;
+  if (!allowed) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `Only a super admin can use this command`,
+    );
+  }
 
   if (!msg.reply_to_message) {
     return bot.sendMessage(
