@@ -211,6 +211,36 @@ bot.onText(/\/stopcontest/, async (msg) => {
 });
 
 /**
+ * LEADERBOARD
+ */
+bot.onText(/\/leaderboard/, async (msg) => {
+  const contest = await Contest.findOne({
+    chatId: msg.chat.id,
+    isActive: true,
+  });
+
+  if (!contest) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `A contest has not been started here. Please use the /startcontest to start a contest`,
+    );
+  }
+
+  const scores = await Score.find({ contestId: contest._id })
+    .sort({ totalScore: -1 })
+    .limit(10);
+
+  let text = '🏆 Leaderboard:\n\n';
+
+  scores.forEach((s, i) => {
+    text += `${i + 1}. @${s.username} - ${s.totalScore}\n`;
+  });
+
+  bot.sendMessage(msg.chat.id, text);
+});
+
+
+/**
  * EXTRACT LINKS FROM CHAT HISTORY
  */
 bot.onText(/\/extractlinks/, async (msg) => {
