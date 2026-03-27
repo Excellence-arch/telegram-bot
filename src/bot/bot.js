@@ -163,7 +163,7 @@ ${description}
 Participants can now submit screenshots and links. Good luck! 🎉
   `;
 
-  bot.sendMessage(msg.chat.id, response, { parse_mode: 'Markdown' });
+  bot.sendMessage(msg.chat.id, response);
 });
 
 /**
@@ -207,7 +207,7 @@ bot.onText(/\/stopcontest/, async (msg) => {
 
   resultText += `\nThank you to all participants! 🎉`;
 
-  bot.sendMessage(msg.chat.id, resultText, { parse_mode: 'Markdown' });
+  bot.sendMessage(msg.chat.id, resultText);
 });
 
 /**
@@ -323,7 +323,6 @@ bot.onText(/\/extractlinks/, async (msg) => {
     // Send CSV file
     await bot.sendDocument(msg.chat.id, filepath, {
       caption: `📊 **Links Export**\n\nTotal users: ${csvData.length}\nContest: ${contest.name || 'Current Contest'}\nGenerated: ${new Date().toLocaleString()}`,
-      parse_mode: 'Markdown',
     });
 
     // Clean up file
@@ -406,7 +405,7 @@ bot.onText(/\/listadmins/, async (msg) => {
     text += `${i + 1}. @${admin.username || 'no_username'} (ID: ${admin.userId}) - ${admin.role}\n`;
   });
 
-  bot.sendMessage(msg.chat.id, text, { parse_mode: 'Markdown' });
+  bot.sendMessage(msg.chat.id, text);
 });
 
 /**
