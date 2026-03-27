@@ -239,13 +239,19 @@ bot.onText(/\/leaderboard/, async (msg) => {
       ],
     },
   });
-
-  
 });
 
 bot.on('callback_query', async (query) => {
   const data = query.data;
   const userId = query.from.id;
+
+  let allowed = await canUseBot(bot, query.message.chat.id, userId);
+  if (!allowed) {
+    return bot.answerCallbackQuery(query.id, {
+      text: '❌ Only a registered admin can use this action',
+      show_alert: true,
+    });
+  }
 
   if (!data.startsWith('lb_')) return;
 
