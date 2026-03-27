@@ -222,8 +222,53 @@ bot.onText(/\/leaderboard/, async (msg) => {
   if (!contest) {
     return bot.sendMessage(
       msg.chat.id,
-      `A contest has not been started here. Please use the /startcontest to start a contest`,
+      `A contest has not been started here. Please use /startcontest to start a contest`,
     );
+  }
+
+  bot.sendMessage(msg.chat.id, '📊 Where do you want the leaderboard?', {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '📩 Send to DM', callback_data: `lb_dm_${msg.chat.id}` },
+          {
+            text: '👥 Send to Group',
+            callback_data: `lb_group_${msg.chat.id}`,
+          },
+        ],
+      ],
+    },
+  });
+
+  bot.editMessageReplyMarkup(
+    { inline_keyboard: [] },
+    {
+      chat_id: query.message.chat.id,
+      message_id: query.message.message_id,
+    },
+  );
+
+  return;
+});
+
+bot.on('callback_query', async (query) => {
+  const data = query.data;
+  const userId = query.from.id;
+
+  if (!data.startsWith('lb_')) return;
+
+  const [, type, chatId] = data.split('_');
+
+  const contest = await Contest.findOne({
+    chatId: chatId,
+    isActive: true,
+  });
+
+  if (!contest) {
+    return bot.answerCallbackQuery(query.id, {
+      text: '❌ No active contest',
+      show_alert: true,
+    });
   }
 
   const scores = await Score.find({ contestId: contest._id })
@@ -233,12 +278,26 @@ bot.onText(/\/leaderboard/, async (msg) => {
   let text = '🏆 Leaderboard:\n\n';
 
   scores.forEach((s, i) => {
-    text += `${i + 1}. @${s.username} - ${s.totalScore}\n`;
+    text += `${i + 1}. @${s.username || 'Unknown'} - ${s.totalScore}\n`;
   });
 
-  bot.sendMessage(msg.chat.id, text);
-});
+  try {
+    if (type === 'dm') {
+      await bot.sendMessage(userId, text);
+    } else {
+      await bot.sendMessage(chatId, text);
+    }
 
+    await bot.answerCallbackQuery(query.id, {
+      text: '✅ Sent successfully!',
+    });
+  } catch (err) {
+    await bot.answerCallbackQuery(query.id, {
+      text: '⚠️ Failed. Start bot in DM first.',
+      show_alert: true,
+    });
+  }
+});
 
 /**
  * EXTRACT LINKS FROM CHAT HISTORY
@@ -350,10 +409,23 @@ bot.onText(/\/extractlinks/, async (msg) => {
 
     fs.writeFileSync(filepath, csv);
 
-    // Send CSV file
-    await bot.sendDocument(msg.chat.id, filepath, {
-      caption: `📊 **Links Export**\n\nTotal users: ${csvData.length}\nContest: ${contest.name || 'Current Contest'}\nGenerated: ${new Date().toLocaleString()}`,
-    });
+    try {
+      // Send CSV file
+      await bot.sendDocument(msg.from.id, filepath, {
+        caption: `📊 **Links Export**\n\nTotal users: ${csvData.length}\nContest: ${contest.name || 'Current Contest'}\nGenerated: ${new Date().toLocaleString()}`,
+        parse_mode: 'Markdown',
+      });
+    } catch (err) {
+      await bot.sendMessage(
+        msg.chat.id,
+        "⚠️ I couldn't send you a DM. Please start the bot in private first.",
+      );
+
+      await bot.sendDocument(msg.chat.id, filepath, {
+        caption: `📊 **Links Export**\n\nTotal users: ${csvData.length}\nContest: ${contest.name || 'Current Contest'}\nGenerated: ${new Date().toLocaleString()}`,
+        parse_mode: 'Markdown',
+      });
+    }
 
     // Clean up file
     fs.unlinkSync(filepath);
@@ -435,7 +507,7 @@ bot.onText(/\/listadmins/, async (msg) => {
     text += `${i + 1}. @${admin.username || 'no_username'} (ID: ${admin.userId || 'no userId'}) - ${admin.role || 'admin'}\n`;
   });
 
-  bot.sendMessage(msg.chat.id, text);
+  bot.sendMessage(msg.chat.id, text, { parse_mode: 'Markdown' });
 });
 
 /**
