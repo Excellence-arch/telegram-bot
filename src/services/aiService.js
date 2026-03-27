@@ -18,10 +18,8 @@ Return ONLY valid JSON in this exact format (no other text):
 {"score": number, "verdict": "VALID" | "INVALID" | "IRRELEVANT"}
 
 Scoring guidelines:
-- 80-100: Highly relevant, directly matches the task
-- 50-79: Somewhat relevant, partially matches
-- 20-49: Low relevance, barely matches
-- 0-19: Not relevant or invalid submission
+- 1: relevant
+- 0: irrelevant
 `;
 
   try {
