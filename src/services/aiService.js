@@ -1,82 +1,75 @@
-const axios = require('axios');
-// const Groq = require('groq-sdk');
+const Groq = require('groq-sdk');
 require('dotenv').config();
 
-// const groq = new Groq({
-//   apiKey: process.env.OPENAI_API_KEY,
-// });
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 async function analyzeImage(fileUrl, task) {
   const prompt = `
+You are judging a screenshot submission for a contest.
+
 TASK: ${task}
 
-Score relevance (0-100).
-Return JSON:
-{ "score": number, "verdict": "VALID" | "INVALID" | "IRRELEVANT" }
+Analyze the image and determine if it's relevant to the task above.
+Score relevance from 0-100 based on how well it matches the task.
+
+Return ONLY valid JSON in this exact format (no other text):
+{"score": number, "verdict": "VALID" | "INVALID" | "IRRELEVANT"}
+
+Scoring guidelines:
+- 80-100: Highly relevant, directly matches the task
+- 50-79: Somewhat relevant, partially matches
+- 20-49: Low relevance, barely matches
+- 0-19: Not relevant or invalid submission
 `;
 
-  // const response = await groq.chat.completions.create({
-  //   model: 'openai/gpt-oss-120b',
-  //   messages: [{ role: 'user', content: prompt }],
-  //   stream: false,
-  //   max_tokens: 500,
-  //   temperature: 0.7,
-  // });
-
   try {
-    const response = await axios.post(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: fileUrl } },
-            ],
-          },
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
+    const completion = await groq.chat.completions.create({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: prompt,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: fileUrl,
+              },
+            },
+          ],
         },
-      },
-    );
+      ],
+      temperature: 0.7,
+      max_completion_tokens: 200,
+      top_p: 1,
+      stream: false,
+      response_format: { type: 'json_object' },
+    });
 
-    const text = response.data.choices?.[0]?.message?.content;
-    return JSON.parse(text);
+    const text = completion.choices[0]?.message?.content;
+
+    if (!text) {
+      throw new Error('Empty response from AI');
+    }
+
+    // Parse the JSON response
+    const parsed = JSON.parse(text);
+
+    return {
+      score: Math.min(100, Math.max(0, parseInt(parsed.score) || 0)),
+      verdict: ['VALID', 'INVALID', 'IRRELEVANT'].includes(parsed.verdict)
+        ? parsed.verdict
+        : 'INVALID',
+    };
   } catch (error) {
-    console.log('AI analysis failed, marking as INVALID', error.message);
+    console.error('AI analysis failed:', error.message);
     return { score: 0, verdict: 'INVALID' };
   }
-
-  // const text = response.choices?.[0]?.message?.content;
-  // console.log(text);
-  // return JSON.parse(text);
 }
-
-// import Groq from 'groq-sdk';
-
-// const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-// export async function main() {
-//   const chatCompletion = await getGroqChatCompletion();
-//   // console.log(chatCompletion.choices[0]?.message?.content || '');
-// }
-
-// export async function getGroqChatCompletion() {
-//   return groq.chat.completions.create({
-//     messages: [
-//       {
-//         role: 'user',
-//         content: 'Explain the importance of fast language models',
-//       },
-//     ],
-//     model: 'openai/gpt-oss-20b',
-//   });
-// }
 
 module.exports = { analyzeImage };
