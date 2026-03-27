@@ -226,7 +226,7 @@ bot.onText(/\/leaderboard/, async (msg) => {
     );
   }
 
-  bot.sendMessage(msg.chat.id, '📊 Where do you want the leaderboard?', {
+  return bot.sendMessage(msg.chat.id, '📊 Where do you want the leaderboard?', {
     reply_markup: {
       inline_keyboard: [
         [
@@ -240,15 +240,7 @@ bot.onText(/\/leaderboard/, async (msg) => {
     },
   });
 
-  bot.editMessageReplyMarkup(
-    { inline_keyboard: [] },
-    {
-      chat_id: query.message.chat.id,
-      message_id: query.message.message_id,
-    },
-  );
-
-  return;
+  
 });
 
 bot.on('callback_query', async (query) => {
@@ -291,6 +283,15 @@ bot.on('callback_query', async (query) => {
     await bot.answerCallbackQuery(query.id, {
       text: '✅ Sent successfully!',
     });
+    // bot.editMessageReplyMarkup(
+    //   { inline_keyboard: [] },
+    //   {
+    //     chat_id: query.chatId,
+    //     message_id: query.message.message_id,
+    //   },
+    // );
+
+    return;
   } catch (err) {
     await bot.answerCallbackQuery(query.id, {
       text: '⚠️ Failed. Start bot in DM first.',
