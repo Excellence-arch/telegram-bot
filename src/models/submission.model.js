@@ -11,6 +11,7 @@ const SubmissionSchema = new mongoose.Schema({
 
   relevanceScore: Number,
   aiVerdict: String,
+  aiAnalysis: Object,
 });
 
 SubmissionSchema.index({ contestId: 1, fileUniqueId: 1 }, { unique: true });

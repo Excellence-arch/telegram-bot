@@ -860,12 +860,12 @@ bot.onText(/\/listadmins/, async (msg) => {
     return bot.sendMessage(msg.chat.id, 'No admins registered.');
   }
 
-  let text = '👑 **Admins:**\n\n';
+  let text = '👑 Admins:\n\n';
   admins.forEach((admin, i) => {
     text += `${i + 1}. @${admin.username || 'no_username'} (ID: ${admin.userId || 'no userId'}) - ${admin.role || 'admin'}\n`;
   });
 
-  bot.sendMessage(msg.chat.id, text, { parse_mode: 'Markdown' });
+  bot.sendMessage(msg.chat.id, text);
 });
 
 /**
