@@ -569,16 +569,16 @@ bot.on('callback_query', async (query) => {
   let text = '🏆 **Leaderboard:**\n\n';
 
   scores.forEach((s, i) => {
-    text += `${i + 1}. @${s.username || 'Unknown'} - ${s.totalScore} points\n`;
+    text += `${i + 1}. @${s.username || 'Unknown'} - ${s.totalScore || 0} points\n`;
   });
 
   text += `\n*Scoring: 1 point per valid Twitter/X link, 1 point per valid screenshot*`;
 
   try {
     if (type === 'dm') {
-      await bot.sendMessage(userId, text, { parse_mode: 'Markdown' });
+      await bot.sendMessage(userId, text);
     } else {
-      await bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+      await bot.sendMessage(chatId, text);
     }
 
     await bot.answerCallbackQuery(query.id, {
